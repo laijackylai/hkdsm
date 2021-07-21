@@ -1,28 +1,22 @@
 import numpy as np
+from numpy.core.fromnumeric import sort
+from pyproj import Transformer 
 
-np.set_printoptions(suppress=True)
+np.set_printoptions(suppress=True, edgeitems=10,linewidth=180) # fix rubbish np printing behaviours
 
-# test_file = open('6NW24C(e819n830,e820n830).txt', 'r')
-# lines = test_file.readlines()
+filename = 'test.txt'
 
-# northings = np.array([])
-# eastings = np.array([])
-# heights = np.array([])
+# * data structure being easting, northing, height, unknown, unknown
+data = np.loadtxt(filename, dtype=np.float, delimiter=',')
 
-# for line in lines:
-#     inp = line.split(',')
-#     east = float(inp[0])
-#     north = float(inp[1])
-#     height = float(inp[2])
-#     northings = np.append(northings, north)
-#     eastings = np.append(eastings, east)
-#     heights = np.append(heights, height)
+sorted = np.sort(data, axis=0) # sort by easting
 
-# print(len(northings))
-# print(len(eastings))
-# print(len(heights))
+transformer = Transformer.from_crs(2326, 4326)
+lat, lon = transformer.transform(sorted[:, 1], sorted[:, 0]) # reference: https://github.com/shermanfcm/HK1980#python
 
-data = np.loadtxt('test.txt', dtype=np.float, delimiter=',')
+lat = np.reshape(lat, (-1, 1))
+lon = np.reshape(lon, (-1, 1))
+# * new array structure: HK1980 easting, HK1980 northing, height, unknown, unknown, lat, lon
+sorted = np.concatenate((sorted, lat, lon), axis=1) 
 
-sorted = np.sort(data, axis=0)
 print(sorted)
