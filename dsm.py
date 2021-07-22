@@ -1,5 +1,4 @@
 import numpy as np
-from numpy.core.fromnumeric import sort
 from pyproj import Transformer 
 
 np.set_printoptions(suppress=True, edgeitems=10,linewidth=180) # fix rubbish np printing behaviours
