@@ -45,3 +45,5 @@ print('triangles', triangles)
 # TODO: build quantized mesh using quantized-mesh-encoder (https://github.com/kylebarron/quantized-mesh-encoder)
 # TODO: try rendering it in Deck.gl
 # TODO: explore ways to simplify the generated quantized mesh
+
+# * fixed clang problem by following this (https://github.com/andersbll/cudarray/issues/25#issuecomment-146217359)
