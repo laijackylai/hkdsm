@@ -5,6 +5,7 @@ from pymartini import decode_ele, Martini, rescale_positions
 from imageio import imread
 import mercantile
 
+np.get_include()
 np.set_printoptions(suppress=True, edgeitems=10,linewidth=180) # fix rubbish np printing behaviours
 
 testFilename = 'test.txt'
