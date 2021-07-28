@@ -5,24 +5,24 @@ from pymartini import decode_ele, Martini, rescale_positions
 from imageio import imread
 import mercantile
 
-np.get_include()
-np.set_printoptions(suppress=True, edgeitems=10,linewidth=180) # fix rubbish np printing behaviours
+np.set_printoptions(suppress=True, edgeitems=10, linewidth=180, precision=20) # fix rubbish np printing behaviours
 
 testFilename = 'test.txt'
 filename = '6NW24C(e819n830,e820n830).txt'
 
 # * data structure being easting, northing, height, unknown, unknown
-data = np.loadtxt(testFilename, delimiter=',')
-
-sorted = np.sort(data, axis=0) # sort by easting
+data = np.loadtxt(filename, delimiter=',')
 
 transformer = Transformer.from_crs(2326, 4326)
-lat, lon = transformer.transform(sorted[:, 1], sorted[:, 0]) # reference: https://github.com/shermanfcm/HK1980#python
+lat, lon = transformer.transform(data[:, 1], data[:, 0]) # reference: https://github.com/shermanfcm/HK1980#python
 
 lat = np.reshape(lat, (-1, 1))
 lon = np.reshape(lon, (-1, 1))
 # * new array structure: HK1980 easting, HK1980 northing, height, unknown, unknown, lat, lon
-sorted = np.concatenate((sorted, lat, lon), axis=1) 
+latlon = np.concatenate((data, lat, lon), axis=1)
+sorted = np.sort(latlon, axis=0)
+print(sorted)
+exit()
 
 # ! testing martini to know what quantized mesh encoder needs
 png_path = 'fuji.png'
@@ -39,8 +39,8 @@ rescaled = rescale_positions(
     bounds=bounds,
     flip_y=True
 )
-print('verticies', rescaled)
-print('triangles', triangles)
+# print('verticies', rescaled)
+# print('triangles', triangles)
 
 # TODO: build quantized mesh using quantized-mesh-encoder (https://github.com/kylebarron/quantized-mesh-encoder)
 # TODO: try rendering it in Deck.gl
