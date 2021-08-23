@@ -29,6 +29,10 @@ max_lat = np.max(lat)
 min_lon = np.min(lon)
 max_lon = np.max(lon)
 
+print('lat: ', min_lat, max_lat)
+print('lon: ', min_lon, max_lon)
+exit()
+
 # ! testing martini to know what quantized mesh encoder needs
 # png_path = 'fuji.png'
 # png = imread(png_path)
