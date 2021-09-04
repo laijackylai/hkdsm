@@ -1,5 +1,8 @@
 # input txt files
 *.txt
+*.csv
+*.tif
+!test.*
 !requirements.txt
 
 # Byte-compiled / optimized / DLL files
