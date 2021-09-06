@@ -9,6 +9,8 @@ import numpy as np
 from osgeo import gdal
 import rasterio as rio
 from rasterio.warp import calculate_default_transform, reproject, Resampling
+from pyproj import Transformer
+
 
 # set paths
 inpath = os.getcwd() + "/input_txt/"
@@ -19,8 +21,7 @@ start_time = time.time()
 # make file list
 os.chdir(inpath)
 files = [f for f in os.listdir(
-    inpath) if os.path.isfile(os.path.join(inpath, f))]
-
+    inpath) if os.path.isfile(os.path.join(inpath, f)) and 'test' not in f and 'DS_Store' not in f]
 
 for f in files:
     # open .xyz file as csv file
@@ -31,12 +32,26 @@ for f in files:
     df = pd.DataFrame(np.vstack([df.columns, df]))
     for i in [0, 1, 2, 3]:
         df.iloc[0][i] = float(df.iloc[0][i])
-    df.columns = ["Lon", "Lat", "Ele", "Na", "Na2"]
+    df.columns = ["Easting", "Northing", "Ele", "Na", "Na2"]
     name = f.split('.')[0]
     df = df.drop(columns={'Na', 'Na2'})
     df["Ele"] = df["Ele"] + 0.146
 
-    df.to_csv(outpath + name + ".csv", index=False)
+    transformer = Transformer.from_crs(2326, 4326)
+    # reference: https://github.com/shermanfcm/HK1980#python
+    lat, lon = transformer.transform(df['Northing'], df['Easting'])
+
+    #! Insert the translated lat and lon to the pandas dataframe
+    df = df.insert(0, 'Lon', lon)
+    df = df.insert(0, 'Lat', lat)
+    print(df)
+
+    # df.to_csv(outpath + name + ".csv", index=False)
+    # print('Translated to CSV')
+
+    # print('lat range: ' + str(df['Lat'].min()) + ' -> ' + str(df['Lat'].max()))
+    # print('lon range: ' + str(df['Lon'].min()) + ' -> ' + str(df['Lon'].max()))
+    exit()
 
     # create .vrt file for raster format conversion (from csv to Geotiff(gdal))
     os.chdir(outpath)
@@ -58,7 +73,7 @@ for f in files:
     gdal.Grid(outpath + out_tif, outpath + vrt_fn)
 
     os.remove(outpath + fn)  # remove the csv file
-    os.remove(outpath + vrt_fn)  # remove the vrt file
+    # os.remove(outpath + vrt_fn)  # remove the vrt file
     print("--- %s seconds ---" % (time.time() - start_time2))
 
 print("--- %s seconds ---" % (time.time() - start_time))
