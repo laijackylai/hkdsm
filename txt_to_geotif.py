@@ -46,7 +46,6 @@ files = [f for f in os.listdir(
 
 for f in files:
     # open .xyz file as csv file
-    start_time2 = time.time()
     print('processing ' + f)
     df = pd.read_csv(inpath + f, sep=",")
     df = df.dropna(axis=1)
@@ -59,16 +58,16 @@ for f in files:
     df = df.drop(columns={'Na', 'Na2'})
     df["Ele"] = df["Ele"] + 0.146
 
+    #! Northing -> Longitude, Easting -> Latitude
     transformer = Transformer.from_crs(2326, 4326)
     # reference: https://github.com/shermanfcm/HK1980#python
     lat, lon = transformer.transform(df['Northing'], df['Easting'])
 
-    # #! Insert the translated lat and lon to the pandas dataframe
     df.insert(0, 'Lon', lon.tolist())
     df.insert(0, 'Lat', lat.tolist())
 
     df.to_csv(outpath + name + ".csv", index=False)
-    print('Translated to CSV')
+    print('Translated to CSV - ', time.time() - start_time)
 
     minLat = lat.min()
     maxLat = lat.max()
@@ -98,7 +97,7 @@ for f in files:
         fn_vrt.write('\t</OGRVRTLayer>\n')
         fn_vrt.write('</OGRVRTDataSource>\n')
 
-    print('created VRT')
+    print('created VRT - ', time.time() - start_time)
 
     gridOptions = {
         'destName': outpath + out_tif,
@@ -111,7 +110,7 @@ for f in files:
 
     # os.remove(outpath + fn)  # remove the csv file
     # os.remove(outpath + vrt_fn)  # remove the vrt file
-    print('created GeoTiff')
+    print('created GeoTiff - ', time.time() - start_time)
 
 # # find the Tiff file to loop for
 # tif_files = [f for f in os.listdir(
