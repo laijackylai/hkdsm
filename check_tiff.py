@@ -23,18 +23,19 @@ for f in files:
     with rio.open(inpath + f) as src:
         print(src.bounds)
 
-    lu = gdal.Open(inpath + f)
-    raw_data = lu.ReadAsArray()
+    # lu = gdal.Open(inpath + f)
+    # raw_data = lu.ReadAsArray()
 
-    image = Image.fromarray(raw_data).convert('LA')
-    name = str(f.split('.')[0])
-    image.save(outpath + name + '.png')
+    # image = Image.fromarray(raw_data).convert('LA')
+    # name = str(f.split('.')[0])
+    # image.save(outpath + name + '.png')
 
     # lue = lu.GetGeoTransform()
     # Proj = lu.GetProjection()
 
     # band = lu.GetRasterBand(1)
     # array = band.ReadAsArray()
+    # print(np.shape(array))
     # fig = plt.figure()
     # ax = fig.add_subplot(1, 1, 1)
     # img = ax.imshow(array)

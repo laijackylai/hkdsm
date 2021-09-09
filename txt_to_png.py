@@ -11,6 +11,7 @@ from osgeo import gdal
 import rasterio as rio
 from rasterio.warp import calculate_default_transform, reproject, Resampling
 from pyproj import Transformer
+from PIL import Image
 
 
 def haversine(lon1, lat1, lon2, lat2):
@@ -34,7 +35,8 @@ def haversine(lon1, lat1, lon2, lat2):
 
 # set paths
 inpath = os.getcwd() + "/input_txt/"
-outpath = os.getcwd() + "/tif/"
+tifpath = os.getcwd() + "/tif/"
+pngpath = os.getcwd() + "/png/"
 
 start_time = time.time()
 
@@ -58,7 +60,7 @@ for f in files:
     df = df.drop(columns={'Na', 'Na2'})
     df["Ele"] = df["Ele"] + 0.146
 
-    #! Northing -> Longitude, Easting -> Latitude
+    #! Northing -> Latitude -> x, Easting -> Longitude -> y
     transformer = Transformer.from_crs(2326, 4326)
     # reference: https://github.com/shermanfcm/HK1980#python
     lat, lon = transformer.transform(df['Northing'], df['Easting'])
@@ -66,13 +68,16 @@ for f in files:
     df.insert(0, 'Lon', lon.tolist())
     df.insert(0, 'Lat', lat.tolist())
 
-    df.to_csv(outpath + name + ".csv", index=False)
-    print('Translated to CSV - ', time.time() - start_time)
+    print(df)
+
+    df.to_csv(tifpath + name + ".csv", index=False)
+    print(int(time.time() - start_time), 's - Translated to CSV')
 
     minLat = lat.min()
     maxLat = lat.max()
     minLon = lon.min()
     maxLon = lon.max()
+    print('bounding box: ', minLon, minLat, maxLon, maxLat)
 
     lat_cover = haversine(minLon, minLat, minLon, maxLat)
     lon_cover = haversine(minLon, minLat, maxLon, minLat)
@@ -81,13 +86,13 @@ for f in files:
     img_height = lon_cover / 2
 
     # create .vrt file for raster format conversion (from csv to Geotiff(gdal))
-    os.chdir(outpath)
+    os.chdir(tifpath)
     fn = name + ".csv"
     vrt_fn = fn.replace(".csv", ".vrt")
     lyr_name = fn.replace('.csv', '')
     out_tif = fn.replace('.csv', '.tif')
 
-    with open(outpath + vrt_fn, 'w+') as fn_vrt:
+    with open(tifpath + vrt_fn, 'w+') as fn_vrt:
         fn_vrt.write('<OGRVRTDataSource>\n')
         fn_vrt.write('\t<OGRVRTLayer name="%s">\n' % lyr_name)
         fn_vrt.write('\t\t<SrcDataSource>%s</SrcDataSource>\n' % fn)
@@ -97,46 +102,60 @@ for f in files:
         fn_vrt.write('\t</OGRVRTLayer>\n')
         fn_vrt.write('</OGRVRTDataSource>\n')
 
-    print('created VRT - ', time.time() - start_time)
+    print(int(time.time() - start_time), 's - Created VRT')
 
     gridOptions = {
-        'destName': outpath + out_tif,
-        'srcDS': outpath + vrt_fn,
+        'destName': tifpath + out_tif,
+        'srcDS': tifpath + vrt_fn,
         'width': img_width,
         'height': img_height
     }
 
     gdal.Grid(**gridOptions)
 
-    # os.remove(outpath + fn)  # remove the csv file
-    # os.remove(outpath + vrt_fn)  # remove the vrt file
-    print('created GeoTiff - ', time.time() - start_time)
+    os.remove(tifpath + fn)  # remove the csv file
+    os.remove(tifpath + vrt_fn)  # remove the vrt file
+    print(int(time.time() - start_time), 's - Created GeoTiff')
 
-# # find the Tiff file to loop for
-# tif_files = [f for f in os.listdir(
-#     outpath) if os.path.isfile(os.path.join(outpath, f)) and 'test' not in f and 'DS_Store' not in f]
+# find the Tiff file to loop for
+tif_files = [f for f in os.listdir(
+    tifpath) if os.path.isfile(os.path.join(tifpath, f)) and 'test' not in f and 'DS_Store' not in f]
 
-# # set the coordinate system
-# dst_crs = 'EPSG:2326'
-# # change the coordinate system in each file
-# for tfn in tif_files:
-#     print(tfn)
-#     with rio.open(outpath + tfn) as src:
-#         # print(src.crs, dst_crs, src.width, src.height, *src.bounds)
-#         transform, width, height = calculate_default_transform(
-#             src.crs, dst_crs, src.width, src.height, *src.bounds)
-#         kwargs = src.meta.copy()
-#         kwargs.update({'crs': dst_crs, 'transform': transform,
-#                       'width': width, 'height': height})
-#         print(kwargs)
-#         with rio.open(outpath + tfn, 'w', **kwargs) as dst:
-#             for i in range(1, src.count + 1):
-#                 reproject(source=rio.band(src, i),
-#                           destination=rio.band(dst, i),
-#                           src_transform=src.transform,
-#                           src_crs=src.crs,
-#                           dst_transform=transform,
-#                           dst_crs=dst_crs,
-#                           resampling=Resampling.nearest)
+# set the coordinate system
+dst_crs = 'EPSG:4326'
+# change the coordinate system in each file
+for tfn in tif_files:
+    print(tfn)
+    with rio.open(tifpath + tfn) as src:
+        # print(src.crs, dst_crs, src.width, src.height, *src.bounds)
+        transform, width, height = calculate_default_transform(
+            src.crs, dst_crs, src.width, src.height, *src.bounds)
+        kwargs = src.meta.copy()
+        kwargs.update({'crs': dst_crs, 'transform': transform,
+                      'width': width, 'height': height})
+        print(kwargs)
+        with rio.open(tifpath + tfn, 'w', **kwargs) as dst:
+            for i in range(1, src.count + 1):
+                reproject(source=rio.band(src, i),
+                          destination=rio.band(dst, i),
+                          src_transform=src.transform,
+                          src_crs=src.crs,
+                          dst_transform=transform,
+                          dst_crs=dst_crs,
+                          resampling=Resampling.nearest)
+    print(time.time() - start_time, 's - Updated GeoTiff coordinate system')
 
-# print('updated GeoTiff coordinate system')
+    options_list = [
+        '-ot Byte',
+        '-of PNG',
+        '-b 1',
+        '-scale',
+        '-a_srs EPSG:4326'
+    ]
+    options_string = " ".join(options_list)
+    gdal.Translate(
+        pngpath + name + '.png',
+        tifpath + out_tif,
+        options=options_string
+    )
+    print(int(time.time() - start_time), 's - Exported to PNG')
