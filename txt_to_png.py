@@ -5,13 +5,23 @@
 import math
 import time
 import os
+import shutil
 import pandas as pd
 import numpy as np
 from osgeo import gdal
 import rasterio as rio
 from rasterio.warp import calculate_default_transform, reproject, Resampling
 from pyproj import Transformer
-from PIL import Image
+from multiprocessing import Pool
+
+# TODO: add concurrancy for processing the txt files in parallel
+# TODO: save the matching png files and its bounding box in a csv for later use in rendering the front end
+
+# set paths and start time
+inpath = os.getcwd() + "/input_txt/"
+tifpath = os.getcwd() + "/tif/"
+pngpath = os.getcwd() + "/png/"
+start_time = time.time()
 
 
 def haversine(lon1, lat1, lon2, lat2):
@@ -33,23 +43,43 @@ def haversine(lon1, lat1, lon2, lat2):
     return c * r * 1000  # in meters
 
 
-# set paths
-inpath = os.getcwd() + "/input_txt/"
-tifpath = os.getcwd() + "/tif/"
-pngpath = os.getcwd() + "/png/"
+def clean_folder(path):
+    for filename in os.listdir(path):
+        file_path = os.path.join(path, filename)
+        try:
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+            print('cleaned ', str(path))
+        except Exception as e:
+            print('Failed to delete %s. Reason: %s' % (file_path, e))
 
-start_time = time.time()
 
-# make file list
-os.chdir(inpath)
+def __init():
+    # os.chdir(inpath)
+    print('starting program')
+    clean_folder(tifpath)
+    clean_folder(pngpath)
 
-files = [f for f in os.listdir(
-    inpath) if os.path.isfile(os.path.join(inpath, f)) and 'test' not in f and 'DS_Store' not in f]
 
-for f in files:
+def get_files_to_be_processed():
+    """
+    get txt files that needs to be processed
+    """
+    files = [f for f in os.listdir(
+        inpath) if os.path.isfile(os.path.join(inpath, f)) and '.txt' in f and 'DS_Store' not in f and 'test' not in f]
+    return files
+
+
+def process_single_file(f):
+    """
+    process one single txt file -> csv -> create vrt -> create geotiff -> generate height map
+    """
     # open .xyz file as csv file
     print('processing ' + f)
     df = pd.read_csv(inpath + f, sep=",")
+
     df = df.dropna(axis=1)
     df = pd.DataFrame(np.vstack([df.columns, df]))
     for i in [0, 1, 2, 3]:
@@ -63,24 +93,30 @@ for f in files:
     #! Northing -> Latitude -> x, Easting -> Longitude -> y
     transformer = Transformer.from_crs(2326, 4326)
     # reference: https://github.com/shermanfcm/HK1980#python
-    lat, lon = transformer.transform(df['Northing'], df['Easting'])
+    lat, lon = transformer.transform(df['Easting'], df['Northing'])
 
     df.insert(0, 'Lon', lon.tolist())
     df.insert(0, 'Lat', lat.tolist())
 
-    print(df)
-
     df.to_csv(tifpath + name + ".csv", index=False)
-    print(int(time.time() - start_time), 's - Translated to CSV')
+    print('1/4 -', str(time.time() - start_time), 's - Translated to CSV')
 
-    minLat = lat.min()
-    maxLat = lat.max()
-    minLon = lon.min()
-    maxLon = lon.max()
-    print('bounding box: ', minLon, minLat, maxLon, maxLat)
+    ##############################################################
 
-    lat_cover = haversine(minLon, minLat, minLon, maxLat)
-    lon_cover = haversine(minLon, minLat, maxLon, minLat)
+    min_lat = lat.min()
+    max_lat = lat.max()
+    min_lon = lon.min()
+    max_lon = lon.max()
+    print('bounding box: ' + str(min_lon) + ',' +
+          str(min_lat)+',' + str(max_lon) + ',' + str(max_lat))
+
+    # store data in csv
+    # with open('metadata.csv', 'a+') as csv:
+    #     metadata = [name, min_lon, min_lat, max_lon, max_lat]
+    #     csv.write(metadata)
+
+    lat_cover = haversine(min_lon, min_lat, min_lon, max_lat)
+    lon_cover = haversine(min_lon, min_lat, max_lon, min_lat)
 
     img_width = lat_cover / 2
     img_height = lon_cover / 2
@@ -102,39 +138,34 @@ for f in files:
         fn_vrt.write('\t</OGRVRTLayer>\n')
         fn_vrt.write('</OGRVRTDataSource>\n')
 
-    print(int(time.time() - start_time), 's - Created VRT')
+    print('2/4 -', str(time.time() - start_time), 's - Created VRT')
 
-    gridOptions = {
+    ##############################################################
+
+    grid_options = {
         'destName': tifpath + out_tif,
         'srcDS': tifpath + vrt_fn,
         'width': img_width,
         'height': img_height
     }
-
-    gdal.Grid(**gridOptions)
-
+    gdal.Grid(**grid_options)
     os.remove(tifpath + fn)  # remove the csv file
     os.remove(tifpath + vrt_fn)  # remove the vrt file
-    print(int(time.time() - start_time), 's - Created GeoTiff')
+    print('3/4 -', str(time.time() - start_time), 's - Created GeoTiff')
 
-# find the Tiff file to loop for
-tif_files = [f for f in os.listdir(
-    tifpath) if os.path.isfile(os.path.join(tifpath, f)) and 'test' not in f and 'DS_Store' not in f]
+    ##############################################################
 
-# set the coordinate system
-dst_crs = 'EPSG:4326'
-# change the coordinate system in each file
-for tfn in tif_files:
-    print(tfn)
-    with rio.open(tifpath + tfn) as src:
+    # set the coordinate system
+    dst_crs = 'EPSG:4326'
+    with rio.open(tifpath + out_tif) as src:
         # print(src.crs, dst_crs, src.width, src.height, *src.bounds)
         transform, width, height = calculate_default_transform(
             src.crs, dst_crs, src.width, src.height, *src.bounds)
         kwargs = src.meta.copy()
         kwargs.update({'crs': dst_crs, 'transform': transform,
-                      'width': width, 'height': height})
+                       'width': width, 'height': height})
         print(kwargs)
-        with rio.open(tifpath + tfn, 'w', **kwargs) as dst:
+        with rio.open(tifpath + out_tif, 'w', **kwargs) as dst:
             for i in range(1, src.count + 1):
                 reproject(source=rio.band(src, i),
                           destination=rio.band(dst, i),
@@ -144,6 +175,8 @@ for tfn in tif_files:
                           dst_crs=dst_crs,
                           resampling=Resampling.nearest)
     print(time.time() - start_time, 's - Updated GeoTiff coordinate system')
+
+    ##############################################################
 
     options_list = [
         '-ot Byte',
@@ -158,4 +191,19 @@ for tfn in tif_files:
         tifpath + out_tif,
         options=options_string
     )
-    print(int(time.time() - start_time), 's - Exported to PNG')
+    print('4/4 -', str(time.time() - start_time), 's - Exported to PNG')
+
+
+def test(file):
+    """
+    test function for pool
+    """
+    print(file)
+
+
+if __name__ == "__main__":
+    __init()
+    listToBeProcessed = get_files_to_be_processed()
+    # replace test with process_single_file to do the real transition
+    with Pool(len(listToBeProcessed)) as p:
+        p.map(process_single_file, listToBeProcessed)
