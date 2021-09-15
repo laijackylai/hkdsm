@@ -13,11 +13,13 @@ import rasterio as rio
 from rasterio.warp import calculate_default_transform, reproject, Resampling
 from pyproj import Transformer
 from multiprocessing import Pool
+import csv
 
 # TODO: add concurrancy for processing the txt files in parallel
 # TODO: save the matching png files and its bounding box in a csv for later use in rendering the front end
 
 # set paths and start time
+home = os.getcwd()
 inpath = os.getcwd() + "/input_txt/"
 tifpath = os.getcwd() + "/tif/"
 pngpath = os.getcwd() + "/png/"
@@ -87,6 +89,7 @@ def process_single_file(f):
     # should be Easting, Northing
     df.columns = ["Easting", "Northing", "Ele", "Na", "Na2"]
     name = f.split('.')[0]
+    name = name.replace(',', ':')
     df = df.drop(columns={'Na', 'Na2'})
     df["Ele"] = df["Ele"] + 0.146
 
@@ -111,9 +114,12 @@ def process_single_file(f):
           str(min_lat)+',' + str(max_lon) + ',' + str(max_lat))
 
     # store data in csv
-    # with open('metadata.csv', 'a+') as csv:
-    #     metadata = [name, min_lon, min_lat, max_lon, max_lat]
-    #     csv.write(metadata)
+    os.chdir(home)
+    with open('metadata.csv', 'a+', newline='') as csvfile:
+        writer = csv.writer(csvfile, delimiter=',',
+                            quotechar='\n', quoting=csv.QUOTE_MINIMAL)
+        metadata = [name, min_lon, min_lat, max_lon, max_lat]
+        writer.writerow(metadata)
 
     lat_cover = haversine(min_lon, min_lat, min_lon, max_lat)
     lon_cover = haversine(min_lon, min_lat, max_lon, min_lat)
