@@ -1,6 +1,6 @@
 <OGRVRTDataSource>
-	<OGRVRTLayer name="6NW24C(e819n830:e820n830)">
-		<SrcDataSource>6NW24C(e819n830:e820n830).csv</SrcDataSource>
+	<OGRVRTLayer name="10NE10C(e828n821:e829n822)">
+		<SrcDataSource>10NE10C(e828n821:e829n822).csv</SrcDataSource>
 		<GeometryType>wkbPoint</GeometryType>
 		<GeometryField encoding="PointFromColumns" x="Lat" y="Lon" z="Ele"/>
 	</OGRVRTLayer>

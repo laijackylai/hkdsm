@@ -13,6 +13,7 @@ import rasterio as rio
 from rasterio.warp import calculate_default_transform, reproject, Resampling
 from pyproj import Transformer
 from multiprocessing import Pool
+import multiprocessing
 import csv
 
 # TODO: add concurrancy for processing the txt files in parallel
@@ -20,7 +21,8 @@ import csv
 
 # set paths and start time
 home = os.getcwd()
-inpath = os.getcwd() + "/input_txt/"
+# inpath = os.getcwd() + "/input_txt/"
+inpath = '/mnt/c/Users/laija/Downloads/D6.ASCII_DTM/'
 tifpath = os.getcwd() + "/tif/"
 pngpath = os.getcwd() + "/png/"
 start_time = time.time()
@@ -211,5 +213,5 @@ if __name__ == "__main__":
     __init()
     listToBeProcessed = get_files_to_be_processed()
     # replace test with process_single_file to do the real transition
-    with Pool(len(listToBeProcessed)) as p:
+    with Pool(4) as p:
         p.map(process_single_file, listToBeProcessed)
