@@ -21,8 +21,8 @@ import csv
 
 # set paths and start time
 home = os.getcwd()
-# inpath = os.getcwd() + "/input_txt/"
-inpath = '/mnt/c/Users/laija/Downloads/D6.ASCII_DTM/'
+inpath = os.getcwd() + "/input_txt/"
+# inpath = '/mnt/c/Users/laija/Downloads/D6.ASCII_DTM/'
 tifpath = os.getcwd() + "/tif/"
 pngpath = os.getcwd() + "/png/"
 start_time = time.time()
