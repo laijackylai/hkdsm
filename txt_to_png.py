@@ -73,7 +73,7 @@ def get_files_to_be_processed():
     """
     files = [f for f in os.listdir(
         inpath) if os.path.isfile(os.path.join(inpath, f)) and '.txt' in f and 'DS_Store' not in f and 'test' not in f]
-    return files
+    return files.sort()
 
 
 def process_single_file(f):
@@ -213,5 +213,5 @@ if __name__ == "__main__":
     __init()
     listToBeProcessed = get_files_to_be_processed()
     # replace test with process_single_file to do the real transition
-    with Pool(4) as p:
-        p.map(process_single_file, listToBeProcessed)
+    # with Pool(4) as p:
+    #     p.map(process_single_file, listToBeProcessed)
