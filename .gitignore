@@ -2,6 +2,7 @@
 *.txt
 *.csv
 *.tif
+!metadata.csv
 !test.*
 !requirements.txt
 
