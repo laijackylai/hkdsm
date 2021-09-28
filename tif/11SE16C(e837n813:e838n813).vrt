@@ -1,7 +1,0 @@
-<OGRVRTDataSource>
-	<OGRVRTLayer name="11SE16C(e837n813:e838n813)">
-		<SrcDataSource>11SE16C(e837n813:e838n813).csv</SrcDataSource>
-		<GeometryType>wkbPoint</GeometryType>
-		<GeometryField encoding="PointFromColumns" x="Lat" y="Lon" z="Ele"/>
-	</OGRVRTLayer>
-</OGRVRTDataSource>

@@ -23,8 +23,8 @@ import glob
 
 # set paths and start time
 home = os.getcwd()
-# inpath = os.getcwd() + "/input_txt/"
-inpath = '/mnt/c/Users/laija/Downloads/D6.ASCII_DTM/'
+inpath = os.getcwd() + "/input_txt/"
+# inpath = '/mnt/c/Users/laija/Downloads/D6.ASCII_DTM/'
 tifpath = os.getcwd() + "/tif/"
 pngpath = os.getcwd() + "/png/"
 start_time = time.time()
@@ -71,7 +71,7 @@ def get_files_to_be_processed():
     """
     files = [f for f in os.listdir(
         inpath) if os.path.isfile(os.path.join(inpath, f)) and '.txt' in f and 'DS_Store' not in f and 'test' not in f]
-    return files
+    return files.sort()
 
 def process_single_file(f):
     """
@@ -218,5 +218,10 @@ if __name__ == "__main__":
     listToBeProcessed = get_files_to_be_processed()
     # read_all_csv(listToBeProcessed)
     # replace test with process_single_file to do the real transition
+<<<<<<< HEAD
     # with Pool(multiprocessing.cpu_count()) as p:
     #     p.map(test, listToBeProcessed)
+=======
+    # with Pool(4) as p:
+    #     p.map(process_single_file, listToBeProcessed)
+>>>>>>> 31d12b02b1fcc3b09db6639b65cd5f0cd31627cc
