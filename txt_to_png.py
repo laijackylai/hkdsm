@@ -15,6 +15,8 @@ from pyproj import Transformer
 from multiprocessing import Pool
 import multiprocessing
 import csv
+import dask.dataframe as dd
+import glob
 
 # TODO: add concurrancy for processing the txt files in parallel
 # TODO: save the matching png files and its bounding box in a csv for later use in rendering the front end
@@ -27,6 +29,11 @@ tifpath = os.getcwd() + "/tif/"
 pngpath = os.getcwd() + "/png/"
 start_time = time.time()
 
+def __init():
+    # os.chdir(inpath)
+    print('starting program')
+    clean_folder(tifpath)
+    clean_folder(pngpath)
 
 def haversine(lon1, lat1, lon2, lat2):
     """
@@ -46,7 +53,6 @@ def haversine(lon1, lat1, lon2, lat2):
     r = 6371
     return c * r * 1000  # in meters
 
-
 def clean_folder(path):
     for filename in os.listdir(path):
         file_path = os.path.join(path, filename)
@@ -59,14 +65,6 @@ def clean_folder(path):
         except Exception as e:
             print('Failed to delete %s. Reason: %s' % (file_path, e))
 
-
-def __init():
-    # os.chdir(inpath)
-    print('starting program')
-    clean_folder(tifpath)
-    clean_folder(pngpath)
-
-
 def get_files_to_be_processed():
     """
     get txt files that needs to be processed
@@ -74,7 +72,6 @@ def get_files_to_be_processed():
     files = [f for f in os.listdir(
         inpath) if os.path.isfile(os.path.join(inpath, f)) and '.txt' in f and 'DS_Store' not in f and 'test' not in f]
     return files
-
 
 def process_single_file(f):
     """
@@ -201,6 +198,14 @@ def process_single_file(f):
     )
     print('4/4 -', str(time.time() - start_time), 's - Exported to PNG')
 
+def dask_read_all_csv():
+    df = dd.read_csv(inpath + '*.csv')
+    df = df.compute()
+
+def read_all_csv(listToBeProcessed):
+    df_from_each_file = (pd.read_csv(inpath + f) for f in listToBeProcessed)
+    df = pd.concat(df_from_each_file, ignore_index=True)
+    print(df)
 
 def test(file):
     """
@@ -208,10 +213,10 @@ def test(file):
     """
     print(file)
 
-
 if __name__ == "__main__":
     __init()
     listToBeProcessed = get_files_to_be_processed()
+    # read_all_csv(listToBeProcessed)
     # replace test with process_single_file to do the real transition
-    with Pool(4) as p:
-        p.map(process_single_file, listToBeProcessed)
+    # with Pool(multiprocessing.cpu_count()) as p:
+    #     p.map(test, listToBeProcessed)
