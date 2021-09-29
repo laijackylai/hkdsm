@@ -16,7 +16,7 @@ from multiprocessing import Pool
 import multiprocessing
 import csv
 import dask.dataframe as dd
-import glob
+# import glob
 
 # TODO: add concurrancy for processing the txt files in parallel
 # TODO: save the matching png files and its bounding box in a csv for later use in rendering the front end
@@ -199,10 +199,17 @@ def process_single_file(f):
     print('4/4 -', str(time.time() - start_time), 's - Exported to PNG')
 
 def dask_read_all_csv():
+    """
+    parallel read all csv using dask
+    """
     df = dd.read_csv(inpath + '*.csv')
     df = df.compute()
+    print(df)
 
 def read_all_csv(listToBeProcessed):
+    """
+    read all csv sequentially
+    """
     df_from_each_file = (pd.read_csv(inpath + f) for f in listToBeProcessed)
     df = pd.concat(df_from_each_file, ignore_index=True)
     print(df)
@@ -218,10 +225,5 @@ if __name__ == "__main__":
     listToBeProcessed = get_files_to_be_processed()
     # read_all_csv(listToBeProcessed)
     # replace test with process_single_file to do the real transition
-<<<<<<< HEAD
-    # with Pool(multiprocessing.cpu_count()) as p:
-    #     p.map(test, listToBeProcessed)
-=======
-    # with Pool(4) as p:
-    #     p.map(process_single_file, listToBeProcessed)
->>>>>>> 31d12b02b1fcc3b09db6639b65cd5f0cd31627cc
+    with Pool(multiprocessing.cpu_count()) as p:
+        p.map(test, listToBeProcessed)
