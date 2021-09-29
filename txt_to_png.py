@@ -23,8 +23,9 @@ import dask.dataframe as dd
 
 # set paths and start time
 home = os.getcwd()
-inpath = os.getcwd() + "/input_txt/"
+# inpath = os.getcwd() + "/input_txt/"
 # inpath = '/mnt/c/Users/laija/Downloads/D6.ASCII_DTM/'
+inpath = '/home/rsmcvis/D6.ASCII_DTM/'
 tifpath = os.getcwd() + "/tif/"
 pngpath = os.getcwd() + "/png/"
 start_time = time.time()
@@ -71,7 +72,7 @@ def get_files_to_be_processed():
     """
     files = [f for f in os.listdir(
         inpath) if os.path.isfile(os.path.join(inpath, f)) and '.txt' in f and 'DS_Store' not in f and 'test' not in f]
-    return files.sort()
+    return files
 
 def process_single_file(f):
     """
@@ -202,7 +203,7 @@ def dask_read_all_csv():
     """
     parallel read all csv using dask
     """
-    df = dd.read_csv(inpath + '*.csv')
+    df = dd.read_csv(inpath + '*')
     df = df.compute()
     print(df)
 
@@ -223,7 +224,8 @@ def test(file):
 if __name__ == "__main__":
     __init()
     listToBeProcessed = get_files_to_be_processed()
+    dask_read_all_csv()
     # read_all_csv(listToBeProcessed)
     # replace test with process_single_file to do the real transition
-    with Pool(multiprocessing.cpu_count()) as p:
-        p.map(test, listToBeProcessed)
+    # with Pool(multiprocessing.cpu_count()) as p:
+    #     p.map(test, listToBeProcessed)
