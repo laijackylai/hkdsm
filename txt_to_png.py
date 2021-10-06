@@ -33,8 +33,8 @@ start_time = time.time()
 def __init():
     # os.chdir(inpath)
     print('starting program')
-    clean_folder(tifpath)
-    clean_folder(pngpath)
+    # clean_folder(tifpath)
+    # clean_folder(pngpath)
 
 def haversine(lon1, lat1, lon2, lat2):
     """
@@ -70,8 +70,13 @@ def get_files_to_be_processed():
     """
     get txt files that needs to be processed
     """
+    pngfiles = [f for f in os.listdir(
+        home + '/png/') if os.path.isfile(os.path.join(home + '/png/', f)) and '.png']
+    pngfiles = [f.replace('.png', '.txt') for f in pngfiles]
+    pngfiles = [f.replace(':', ',') for f in pngfiles]
     files = [f for f in os.listdir(
         inpath) if os.path.isfile(os.path.join(inpath, f)) and '.txt' in f and 'DS_Store' not in f and 'test' not in f]
+    files = list(set(files) - set(pngfiles))
     return files
 
 def process_single_file(f):
@@ -205,7 +210,7 @@ def dask_read_all_csv():
     """
     df = dd.read_csv(inpath + '*')
     df = df.compute()
-    print(df)
+    return df
 
 def read_all_csv(listToBeProcessed):
     """
@@ -224,8 +229,9 @@ def test(file):
 if __name__ == "__main__":
     __init()
     listToBeProcessed = get_files_to_be_processed()
-    dask_read_all_csv()
+    # df = dask_read_all_csv()
+    # process_single_file(df)
     # read_all_csv(listToBeProcessed)
     # replace test with process_single_file to do the real transition
-    # with Pool(multiprocessing.cpu_count()) as p:
-    #     p.map(test, listToBeProcessed)
+    with Pool(multiprocessing.cpu_count() // 2) as p:
+        p.map(process_single_file, listToBeProcessed)
