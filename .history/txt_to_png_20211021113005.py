@@ -23,10 +23,10 @@ import dask.dataframe as dd
 
 # set paths and start time
 home = os.getcwd()
-# inpath = os.getcwd() + "/input_txt/"
+inpath = os.getcwd() + "/input_txt/"
 # inpath = '/mnt/c/Users/laija/Downloads/D6.ASCII_DTM/'
-inpath = '/home/rsmcvis/D6.ASCII_DTM/'
-tifpath = os.getcwd() + "/tif/"
+# inpath = '/home/rsmcvis/D6.ASCII_DTM/'
+tifpath = os.getcwd() + "/test/"
 pngpath = os.getcwd() + "/png/"
 start_time = time.time()
 
@@ -107,7 +107,7 @@ def process_single_file(f):
     # transformer = Transformer.from_crs(2326, 3857)
     transformer = Transformer.from_crs(2326, 4326)
     # reference: https://github.com/shermanfcm/HK1980#python
-    lat, lon = transformer.transform(df['Northing'], df['Easting'])
+    lat, lon = transformer.transform(df['Easting'], df['Northing'])
 
     df.insert(0, 'Lon', lon.tolist())
     df.insert(0, 'Lat', lat.tolist())

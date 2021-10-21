@@ -26,7 +26,7 @@ home = os.getcwd()
 # inpath = os.getcwd() + "/input_txt/"
 # inpath = '/mnt/c/Users/laija/Downloads/D6.ASCII_DTM/'
 inpath = '/home/rsmcvis/D6.ASCII_DTM/'
-tifpath = os.getcwd() + "/tif/"
+tifpath = os.getcwd() + "/test/"
 pngpath = os.getcwd() + "/png/"
 start_time = time.time()
 
@@ -104,13 +104,17 @@ def process_single_file(f):
     df["Ele"] = df["Ele"] + 0.146
 
     #! Northing -> Latitude -> x, Easting -> Longitude -> y
-    # transformer = Transformer.from_crs(2326, 3857)
-    transformer = Transformer.from_crs(2326, 4326)
+    transformer = Transformer.from_crs(2326, 3857)
     # reference: https://github.com/shermanfcm/HK1980#python
-    lat, lon = transformer.transform(df['Northing'], df['Easting'])
+    lat, lon = transformer.transform(df['Easting'], df['Northing'])
 
     df.insert(0, 'Lon', lon.tolist())
     df.insert(0, 'Lat', lat.tolist())
+
+    df.to_csv(tifpath + name + ".csv", index=False)
+    print('1/4 -', str(time.time() - start_time), 's - Translated to CSV')
+
+    ##############################################################
 
     min_lat = lat.min()
     max_lat = lat.max()
@@ -119,12 +123,7 @@ def process_single_file(f):
     print('bounding box: ' + str(min_lon) + ',' +
           str(min_lat)+',' + str(max_lon) + ',' + str(max_lat))
 
-    df.to_csv(tifpath + name + ".csv", index=False)
-    print('1/4 -', str(time.time() - start_time), 's - Translated to CSV')
-
-    ##############################################################
-
-    # store data in csv
+    store data in csv
     os.chdir(home)
     with open('metadata.csv', 'a+', newline='') as csvfile:
         writer = csv.writer(csvfile, delimiter=',',
@@ -170,45 +169,45 @@ def process_single_file(f):
     os.remove(tifpath + vrt_fn)  # remove the vrt file
     print('3/4 -', str(time.time() - start_time), 's - Created GeoTiff')
 
-    ##############################################################
+    # ##############################################################
 
-    # set the coordinate system
-    dst_crs = 'EPSG:4326'
-    with rio.open(tifpath + out_tif) as src:
-        # print(src.crs, dst_crs, src.width, src.height, *src.bounds)
-        transform, width, height = calculate_default_transform(
-            src.crs, dst_crs, src.width, src.height, *src.bounds)
-        kwargs = src.meta.copy()
-        kwargs.update({'crs': dst_crs, 'transform': transform,
-                       'width': width, 'height': height})
-        print(kwargs)
-        with rio.open(tifpath + out_tif, 'w', **kwargs) as dst:
-            for i in range(1, src.count + 1):
-                reproject(source=rio.band(src, i),
-                          destination=rio.band(dst, i),
-                          src_transform=src.transform,
-                          src_crs=src.crs,
-                          dst_transform=transform,
-                          dst_crs=dst_crs,
-                          resampling=Resampling.nearest)
-    print(time.time() - start_time, 's - Updated GeoTiff coordinate system')
+    # # set the coordinate system
+    # dst_crs = 'EPSG:4326'
+    # with rio.open(tifpath + out_tif) as src:
+    #     # print(src.crs, dst_crs, src.width, src.height, *src.bounds)
+    #     transform, width, height = calculate_default_transform(
+    #         src.crs, dst_crs, src.width, src.height, *src.bounds)
+    #     kwargs = src.meta.copy()
+    #     kwargs.update({'crs': dst_crs, 'transform': transform,
+    #                    'width': width, 'height': height})
+    #     print(kwargs)
+    #     with rio.open(tifpath + out_tif, 'w', **kwargs) as dst:
+    #         for i in range(1, src.count + 1):
+    #             reproject(source=rio.band(src, i),
+    #                       destination=rio.band(dst, i),
+    #                       src_transform=src.transform,
+    #                       src_crs=src.crs,
+    #                       dst_transform=transform,
+    #                       dst_crs=dst_crs,
+    #                       resampling=Resampling.nearest)
+    # print(time.time() - start_time, 's - Updated GeoTiff coordinate system')
 
-    ##############################################################
+    # ##############################################################
 
-    options_list = [
-        '-ot Byte',
-        '-of PNG',
-        '-b 1',
-        '-scale',
-        '-a_srs EPSG:4326'
-    ]
-    options_string = " ".join(options_list)
-    gdal.Translate(
-        pngpath + name + '.png',
-        tifpath + out_tif,
-        options=options_string
-    )
-    print('4/4 -', str(time.time() - start_time), 's - Exported to PNG')
+    # options_list = [
+    #     '-ot Byte',
+    #     '-of PNG',
+    #     '-b 1',
+    #     '-scale',
+    #     '-a_srs EPSG:4326'
+    # ]
+    # options_string = " ".join(options_list)
+    # gdal.Translate(
+    #     pngpath + name + '.png',
+    #     tifpath + out_tif,
+    #     options=options_string
+    # )
+    # print('4/4 -', str(time.time() - start_time), 's - Exported to PNG')
 
 
 def dask_read_all_csv():

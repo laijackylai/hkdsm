@@ -20,7 +20,7 @@ import rasterio as rio
 # for f in files:
 # print(f)
 
-path = './tif/2NE19A(e827n843:e827n844).tif'
+path = '.tif/2NE19A\(e827n843:e827n844\).tif'
 
 with rio.open(path) as src:
     print(src.bounds)

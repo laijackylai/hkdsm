@@ -30,13 +30,11 @@ tifpath = os.getcwd() + "/tif/"
 pngpath = os.getcwd() + "/png/"
 start_time = time.time()
 
-
 def __init():
     # os.chdir(inpath)
     print('starting program')
     # clean_folder(tifpath)
     # clean_folder(pngpath)
-
 
 def haversine(lon1, lat1, lon2, lat2):
     """
@@ -56,7 +54,6 @@ def haversine(lon1, lat1, lon2, lat2):
     r = 6371
     return c * r * 1000  # in meters
 
-
 def clean_folder(path):
     for filename in os.listdir(path):
         file_path = os.path.join(path, filename)
@@ -68,7 +65,6 @@ def clean_folder(path):
             print('cleaned ', str(path))
         except Exception as e:
             print('Failed to delete %s. Reason: %s' % (file_path, e))
-
 
 def get_files_to_be_processed():
     """
@@ -82,7 +78,6 @@ def get_files_to_be_processed():
         inpath) if os.path.isfile(os.path.join(inpath, f)) and '.txt' in f and 'DS_Store' not in f and 'test' not in f]
     files = list(set(files) - set(pngfiles))
     return files
-
 
 def process_single_file(f):
     """
@@ -104,13 +99,17 @@ def process_single_file(f):
     df["Ele"] = df["Ele"] + 0.146
 
     #! Northing -> Latitude -> x, Easting -> Longitude -> y
-    # transformer = Transformer.from_crs(2326, 3857)
     transformer = Transformer.from_crs(2326, 4326)
     # reference: https://github.com/shermanfcm/HK1980#python
-    lat, lon = transformer.transform(df['Northing'], df['Easting'])
+    lat, lon = transformer.transform(df['Easting'], df['Northing'])
 
     df.insert(0, 'Lon', lon.tolist())
     df.insert(0, 'Lat', lat.tolist())
+
+    df.to_csv(tifpath + name + ".csv", index=False)
+    print('1/4 -', str(time.time() - start_time), 's - Translated to CSV')
+
+    ##############################################################
 
     min_lat = lat.min()
     max_lat = lat.max()
@@ -118,11 +117,6 @@ def process_single_file(f):
     max_lon = lon.max()
     print('bounding box: ' + str(min_lon) + ',' +
           str(min_lat)+',' + str(max_lon) + ',' + str(max_lat))
-
-    df.to_csv(tifpath + name + ".csv", index=False)
-    print('1/4 -', str(time.time() - start_time), 's - Translated to CSV')
-
-    ##############################################################
 
     # store data in csv
     os.chdir(home)
@@ -210,7 +204,6 @@ def process_single_file(f):
     )
     print('4/4 -', str(time.time() - start_time), 's - Exported to PNG')
 
-
 def dask_read_all_csv():
     """
     parallel read all csv using dask
@@ -218,7 +211,6 @@ def dask_read_all_csv():
     df = dd.read_csv(inpath + '*')
     df = df.compute()
     return df
-
 
 def read_all_csv(listToBeProcessed):
     """
@@ -228,13 +220,11 @@ def read_all_csv(listToBeProcessed):
     df = pd.concat(df_from_each_file, ignore_index=True)
     print(df)
 
-
 def test(file):
     """
     test function for pool
     """
     print(file)
-
 
 if __name__ == "__main__":
     __init()

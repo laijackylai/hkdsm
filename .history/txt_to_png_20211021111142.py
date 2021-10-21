@@ -26,7 +26,7 @@ home = os.getcwd()
 # inpath = os.getcwd() + "/input_txt/"
 # inpath = '/mnt/c/Users/laija/Downloads/D6.ASCII_DTM/'
 inpath = '/home/rsmcvis/D6.ASCII_DTM/'
-tifpath = os.getcwd() + "/tif/"
+tifpath = os.getcwd() + "/test/"
 pngpath = os.getcwd() + "/png/"
 start_time = time.time()
 
@@ -104,13 +104,17 @@ def process_single_file(f):
     df["Ele"] = df["Ele"] + 0.146
 
     #! Northing -> Latitude -> x, Easting -> Longitude -> y
-    # transformer = Transformer.from_crs(2326, 3857)
-    transformer = Transformer.from_crs(2326, 4326)
+    transformer = Transformer.from_crs(2326, 3857)
     # reference: https://github.com/shermanfcm/HK1980#python
-    lat, lon = transformer.transform(df['Northing'], df['Easting'])
+    lat, lon = transformer.transform(df['Easting'], df['Northing'])
 
     df.insert(0, 'Lon', lon.tolist())
     df.insert(0, 'Lat', lat.tolist())
+
+    df.to_csv(tifpath + name + ".csv", index=False)
+    print('1/4 -', str(time.time() - start_time), 's - Translated to CSV')
+
+    ##############################################################
 
     min_lat = lat.min()
     max_lat = lat.max()
@@ -119,12 +123,7 @@ def process_single_file(f):
     print('bounding box: ' + str(min_lon) + ',' +
           str(min_lat)+',' + str(max_lon) + ',' + str(max_lat))
 
-    df.to_csv(tifpath + name + ".csv", index=False)
-    print('1/4 -', str(time.time() - start_time), 's - Translated to CSV')
-
-    ##############################################################
-
-    # store data in csv
+    store data in csv
     os.chdir(home)
     with open('metadata.csv', 'a+', newline='') as csvfile:
         writer = csv.writer(csvfile, delimiter=',',

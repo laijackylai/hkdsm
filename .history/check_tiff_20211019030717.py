@@ -1,6 +1,7 @@
 import time
 import os
 from numpy.lib.type_check import imag
+import pandas as pd
 import numpy as np
 from osgeo import gdal
 import rasterio as rio
@@ -19,10 +20,7 @@ import rasterio as rio
 
 # for f in files:
 # print(f)
-
-path = './tif/2NE19A(e827n843:e827n844).tif'
-
-with rio.open(path) as src:
+with rio.open(inpath + f) as src:
     print(src.bounds)
 
     # lu = gdal.Open(inpath + f)
