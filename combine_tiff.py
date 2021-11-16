@@ -6,7 +6,6 @@ import needed packages
 """
 import time
 import os
-from osgeo import gdal
 import rasterio as rio
 from rasterio.merge import merge
 
@@ -18,9 +17,6 @@ IN_PATH = './tif/'
 NEW_PATH = './all/'
 
 start_time = time.time()
-
-# set location name
-STATION_NAME = 'HK'
 
 
 def main():
@@ -65,21 +61,21 @@ def main():
 
     print(str(time.time() - start_time), 's - combined GeoTiffs')
 
-    options_list = [
-        '-ot Byte',
-        '-of PNG',
-        '-b 1',
-        '-scale',
-        '-a_srs EPSG:4326'
-    ]
-    options_string = " ".join(options_list)
-    gdal.Translate(
-        './all/all.png',
-        './all/all.tif',
-        options=options_string
-    )
+    # options_list = [
+    #     '-ot Byte',
+    #     '-of PNG',
+    #     '-b 1',
+    #     '-scale',
+    #     '-a_srs EPSG:4326'
+    # ]
+    # options_string = " ".join(options_list)
+    # gdal.Translate(
+    #     './all/all.png',
+    #     './all/all.tif',
+    #     options=options_string
+    # )
 
-    print(str(time.time() - start_time), 's - Exported to PNG')
+    # print(str(time.time() - start_time), 's - Exported to PNG')
 
 
 if __name__ == "__main__":

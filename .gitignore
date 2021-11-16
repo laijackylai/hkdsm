@@ -6,8 +6,11 @@
 !test.*
 !requirements.txt
 
+.history/
+
 /png
 /tif
+/fixed
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
