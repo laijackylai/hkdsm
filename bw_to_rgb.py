@@ -8,7 +8,7 @@ from osgeo import gdal
 
 
 IN_PATH = './tif/'
-OUT_PATH = './fixed/'
+OUT_PATH = './rgb/'
 TEST_PATH = './test/'
 
 
@@ -18,18 +18,18 @@ def main():
     """
 
     list = [f for f in os.listdir(
-        TEST_PATH) if os.path.isfile(os.path.join(TEST_PATH, f)) and '.tif' in f]
+        IN_PATH) if os.path.isfile(os.path.join(IN_PATH, f)) and '.tif' in f]
 
     for tif in list:
         name = tif.split('.')[0]
-        tif = gdal.Open(TEST_PATH + tif)
+        tif = gdal.Open(IN_PATH + tif)
         data = np.array(tif.ReadAsArray())
 
         # r = np.floor(data / 10)
         # g = np.floor((data % 10) / 0.1)
         # b = np.floor((data % 10) % 0.1 / 0.001)
 
-        # data = np.rot90(data, 3)
+        data = np.rot90(data, 3)
         v = data + 32768
         r = np.floor(v/256)
         g = np.floor(v % 256)
@@ -41,7 +41,8 @@ def main():
         # height = r * 10 + g * 0.1 + b * 0.001
 
         im = Image.fromarray(rgb.astype('uint8'), "RGB")
-        im.save(TEST_PATH + name + '.png')
+        im = im.transpose(Image.FLIP_TOP_BOTTOM)
+        im.save(OUT_PATH + name + '.png')
 
 
 if __name__ == '__main__':
