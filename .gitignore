@@ -12,6 +12,8 @@
 /tif
 /fixed
 /rgb
+/tiles
+/all
 
 *.zip
 

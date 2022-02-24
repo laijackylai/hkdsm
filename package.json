@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "axios": "^0.24.0",
+    "gdal": "^0.11.0",
+    "geotiff": "^1.0.8",
+    "objects-to-csv": "^1.3.6"
+  }
+}

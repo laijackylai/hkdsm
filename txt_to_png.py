@@ -23,11 +23,11 @@ import dask.dataframe as dd
 
 # set paths and start time
 home = os.getcwd()
-# inpath = os.getcwd() + "/input_txt/"
+inpath = os.getcwd() + "/test/"
 # inpath = '/mnt/c/Users/laija/Downloads/D6.ASCII_DTM/'
-inpath = '/home/rsmcvis/D6.ASCII_DTM/'
-tifpath = os.getcwd() + "/tif/"
-pngpath = os.getcwd() + "/png/"
+# inpath = '/home/rsmcvis/D6.ASCII_DTM/'
+tifpath = os.getcwd() + "/test/"
+pngpath = os.getcwd() + "/test/"
 start_time = time.time()
 
 
@@ -80,7 +80,7 @@ def get_files_to_be_processed():
     pngfiles = [f.replace(':', ',') for f in pngfiles]
     files = [f for f in os.listdir(
         inpath) if os.path.isfile(os.path.join(inpath, f)) and '.txt' in f and 'DS_Store' not in f and 'test' not in f]
-    files = list(set(files) - set(pngfiles))
+    # files = list(set(files) - set(pngfiles))
     return files
 
 
@@ -103,11 +103,14 @@ def process_single_file(f):
     df = df.drop(columns={'Na', 'Na2'})
     df["Ele"] = df["Ele"] + 0.146
 
-    #! Northing -> Latitude -> x, Easting -> Longitude -> y
+    #! Northing -> Latitude -> y, Easting -> Longitude -> x
     # transformer = Transformer.from_crs(2326, 3857)
     transformer = Transformer.from_crs(2326, 4326)
     # reference: https://github.com/shermanfcm/HK1980#python
-    lat, lon = transformer.transform(df['Northing'], df['Easting'])
+    lat, lon = transformer.transform(df['Easting'], df['Northing'])
+
+    lon_length = len(lon)
+    lat_length = len(lat)
 
     df.insert(0, 'Lon', lon.tolist())
     df.insert(0, 'Lat', lat.tolist())
@@ -132,11 +135,11 @@ def process_single_file(f):
         metadata = [name, min_lon, min_lat, max_lon, max_lat]
         writer.writerow(metadata)
 
-    lat_cover = haversine(min_lon, min_lat, min_lon, max_lat)
-    lon_cover = haversine(min_lon, min_lat, max_lon, min_lat)
+    # lat_cover = haversine(min_lon, min_lat, min_lon, max_lat)
+    # lon_cover = haversine(min_lon, min_lat, max_lon, min_lat)
 
-    img_width = lat_cover / 2
-    img_height = lon_cover / 2
+    # img_width = lon_cover / 2
+    # img_height = lat_cover / 2
 
     # create .vrt file for raster format conversion (from csv to Geotiff(gdal))
     os.chdir(tifpath)
@@ -151,7 +154,7 @@ def process_single_file(f):
         fn_vrt.write('\t\t<SrcDataSource>%s</SrcDataSource>\n' % fn)
         fn_vrt.write('\t\t<GeometryType>wkbPoint</GeometryType>\n')
         fn_vrt.write(
-            '\t\t<GeometryField encoding="PointFromColumns" x="Lat" y="Lon" z="Ele"/>\n')
+            '\t\t<GeometryField encoding="PointFromColumns" x="Lon" y="Lat" z="Ele"/>\n')
         fn_vrt.write('\t</OGRVRTLayer>\n')
         fn_vrt.write('</OGRVRTDataSource>\n')
 
@@ -162,53 +165,53 @@ def process_single_file(f):
     grid_options = {
         'destName': tifpath + out_tif,
         'srcDS': tifpath + vrt_fn,
-        'width': img_width,
-        'height': img_height
+        'width': 512,
+        'height': 512
     }
     gdal.Grid(**grid_options)
-    os.remove(tifpath + fn)  # remove the csv file
-    os.remove(tifpath + vrt_fn)  # remove the vrt file
+    # os.remove(tifpath + fn)  # remove the csv file
+    # os.remove(tifpath + vrt_fn)  # remove the vrt file
     print('3/4 -', str(time.time() - start_time), 's - Created GeoTiff')
 
     ##############################################################
 
     # set the coordinate system
-    dst_crs = 'EPSG:4326'
-    with rio.open(tifpath + out_tif) as src:
-        # print(src.crs, dst_crs, src.width, src.height, *src.bounds)
-        transform, width, height = calculate_default_transform(
-            src.crs, dst_crs, src.width, src.height, *src.bounds)
-        kwargs = src.meta.copy()
-        kwargs.update({'crs': dst_crs, 'transform': transform,
-                       'width': width, 'height': height})
-        print(kwargs)
-        with rio.open(tifpath + out_tif, 'w', **kwargs) as dst:
-            for i in range(1, src.count + 1):
-                reproject(source=rio.band(src, i),
-                          destination=rio.band(dst, i),
-                          src_transform=src.transform,
-                          src_crs=src.crs,
-                          dst_transform=transform,
-                          dst_crs=dst_crs,
-                          resampling=Resampling.nearest)
-    print(time.time() - start_time, 's - Updated GeoTiff coordinate system')
+    # dst_crs = 'EPSG:4326'
+    # with rio.open(tifpath + out_tif) as src:
+    #     # print(src.crs, dst_crs, src.width, src.height, *src.bounds)
+    #     transform, width, height = calculate_default_transform(
+    #         src.crs, dst_crs, src.width, src.height, *src.bounds)
+    #     kwargs = src.meta.copy()
+    #     kwargs.update({'crs': dst_crs, 'transform': transform,
+    #                    'width': width, 'height': height})
+    #     print(kwargs)
+    #     with rio.open(tifpath + out_tif, 'w', **kwargs) as dst:
+    #         for i in range(1, src.count + 1):
+    #             reproject(source=rio.band(src, i),
+    #                       destination=rio.band(dst, i),
+    #                       src_transform=src.transform,
+    #                       src_crs=src.crs,
+    #                       dst_transform=transform,
+    #                       dst_crs=dst_crs,
+    #                       resampling=Resampling.nearest)
+    # print(time.time() - start_time, 's - Updated GeoTiff coordinate system')
 
     ##############################################################
 
-    options_list = [
-        '-ot Byte',
-        '-of PNG',
-        '-b 1',
-        '-scale',
-        '-a_srs EPSG:4326'
-    ]
-    options_string = " ".join(options_list)
-    gdal.Translate(
-        pngpath + name + '.png',
-        tifpath + out_tif,
-        options=options_string
-    )
-    print('4/4 -', str(time.time() - start_time), 's - Exported to PNG')
+    # options_list = [
+    #     '-ot Byte',
+    #     '-of PNG',
+    #     '-b 1',
+    #     '-scale',
+    #     '-a_srs EPSG:4326'
+    # ]
+    # options_string = " ".join(options_list)
+    # gdal.Translate(
+    #     pngpath + name + '.png',
+    #     tifpath + out_tif,
+    #     options=options_string
+    # )
+    # print('4/4 -', str(time.time() - start_time), 's - Exported to PNG')
 
 
 def dask_read_all_csv():
@@ -243,5 +246,8 @@ if __name__ == "__main__":
     # process_single_file(df)
     # read_all_csv(listToBeProcessed)
     # replace test with process_single_file to do the real transition
-    with Pool(multiprocessing.cpu_count() // 2) as p:
-        p.map(process_single_file, listToBeProcessed)
+
+    # with Pool(multiprocessing.cpu_count() // 2) as p:
+    #     p.map(process_single_file, listToBeProcessed)
+
+    process_single_file(listToBeProcessed[0])
