@@ -79,7 +79,7 @@ def get_files_to_be_processed():
     pngfiles = [f.replace('.png', '.txt') for f in pngfiles]
     pngfiles = [f.replace(':', ',') for f in pngfiles]
     files = [f for f in os.listdir(
-        inpath) if os.path.isfile(os.path.join(inpath, f)) and '.txt' in f and 'DS_Store' not in f and 'test' not in f]
+        inpath) if os.path.isfile(os.path.join(inpath, f)) and '.txt' in f and 'DS_Store' not in f]
     # files = list(set(files) - set(pngfiles))
     return files
 
@@ -103,7 +103,10 @@ def process_single_file(f):
     df = df.drop(columns={'Na', 'Na2'})
     df["Ele"] = df["Ele"] + 0.146
 
-    #! Northing -> Latitude -> y, Easting -> Longitude -> x
+    min_z = df["Ele"].min()
+    max_z = df["Ele"].max()
+
+    #! Northing == Latitude == y, Easting == Longitude == x
     # transformer = Transformer.from_crs(2326, 3857)
     transformer = Transformer.from_crs(2326, 4326)
     # reference: https://github.com/shermanfcm/HK1980#python
@@ -127,7 +130,7 @@ def process_single_file(f):
 
     ##############################################################
 
-    # store data in csv
+    # store metadata in csv
     os.chdir(home)
     with open('metadata.csv', 'a+', newline='') as csvfile:
         writer = csv.writer(csvfile, delimiter=',',
@@ -153,26 +156,46 @@ def process_single_file(f):
         fn_vrt.write('\t<OGRVRTLayer name="%s">\n' % lyr_name)
         fn_vrt.write('\t\t<SrcDataSource>%s</SrcDataSource>\n' % fn)
         fn_vrt.write('\t\t<GeometryType>wkbPoint</GeometryType>\n')
+        fn_vrt.write('\t\t<LayerSRS>WGS84</LayerSRS>\n')
         fn_vrt.write(
             '\t\t<GeometryField encoding="PointFromColumns" x="Lon" y="Lat" z="Ele"/>\n')
         fn_vrt.write('\t</OGRVRTLayer>\n')
         fn_vrt.write('</OGRVRTDataSource>\n')
 
+    # * the vrt shd be correct in theory
     print('2/4 -', str(time.time() - start_time), 's - Created VRT')
 
     ##############################################################
 
+    # # ? i can't generate a correct tif with my specified options
+    # raster_options = {
+    #     'destNameOrDestDS': tifpath + 'raster_' + out_tif,
+    #     'srcDS': tifpath + vrt_fn,
+    #     'width': 512,
+    #     'height': 512,
+    #     # 'useZ': True,
+    #     'attribute': 'Ele'
+    # }
+    # gdal.Rasterize(**raster_options)
+    # print('3.1/4 -', str(time.time() - start_time),
+    #       's - Created gdal raster GeoTiff')
+
+    ##############################################################
+
     grid_options = {
-        'destName': tifpath + out_tif,
+        'destName': tifpath + 'grid_' + out_tif,
         'srcDS': tifpath + vrt_fn,
         'width': 512,
-        'height': 512
+        'height': 512,
+        'zfield': 'Ele',
+        'outputSRS': 'WGS84'
     }
     gdal.Grid(**grid_options)
     # os.remove(tifpath + fn)  # remove the csv file
     # os.remove(tifpath + vrt_fn)  # remove the vrt file
-    print('3/4 -', str(time.time() - start_time), 's - Created GeoTiff')
-
+    print('3.2/4 -', str(time.time() - start_time),
+          's - Created gdal grid GeoTiff')
+    exit()
     ##############################################################
 
     # set the coordinate system

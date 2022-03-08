@@ -3,7 +3,7 @@
 *.csv
 *.tif
 !metadata.csv
-!test.*
+# !test.*
 !requirements.txt
 
 .history/
