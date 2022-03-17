@@ -1,8 +1,12 @@
 {
+  "name": "hkdsm",
+  "version": "1.0.0",
+  "description": "tile server",
+  "main": "index.js",
+  "repository": "https://github.com/laijackylai/hkdsm.git",
+  "author": "laijackylai <66239914+laijackylai@users.noreply.github.com>",
+  "license": "MIT",
   "dependencies": {
-    "axios": "^0.24.0",
-    "gdal": "^0.11.0",
-    "geotiff": "^1.0.8",
-    "objects-to-csv": "^1.3.6"
+    "http-server": "^14.1.0"
   }
 }

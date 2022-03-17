@@ -8,6 +8,8 @@
 
 .history/
 
+/node_modules
+
 /tiles/tif
 /tiles/vrt
 !/tiles/png
