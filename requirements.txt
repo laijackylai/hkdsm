@@ -1,5 +1,5 @@
 pyproj==3.1.0
-numpy==1.20.3
+numpy==1.21.0
 imageio==2.9.0
 mercantile==1.2.1
 pymartini==0.3.2
