@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "tile server",
   "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "node test.js"
+  },
   "repository": "https://github.com/laijackylai/hkdsm.git",
   "author": "laijackylai <66239914+laijackylai@users.noreply.github.com>",
   "license": "MIT",
