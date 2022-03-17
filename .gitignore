@@ -8,11 +8,14 @@
 
 .history/
 
+/tiles/tif
+/tiles/vrt
+!/tiles/png
+
 /png
 /tif
 /fixed
 /rgb
-/tiles
 /all
 
 *.zip
