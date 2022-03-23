@@ -9,7 +9,7 @@ const client = http2.connect('https://localhost:8443', {
   ca: fs.readFileSync('./keys/cert.pem')
 })
 
-const req = client.request({ ':path': '/ping' })
+const req = client.request({ ':path': '/test' })
 
 req.setTimeout(3000, () => {
   console.info('request timed out')

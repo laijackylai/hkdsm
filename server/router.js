@@ -16,6 +16,15 @@ const pingHandler = (stream) => {
   stream.end('pong')
 }
 
+const imageHandler = (stream) => {
+  stream.respond({
+    ':status': 200,
+    'content-type': 'text/html; charset=utf-8'
+  })
+  stream.on('error', err => console.error(err))
+  stream.end('<h1>test image</h1>')
+}
+
 // in case a route doesn't exist, we want to return a
 // 404 status and a message that the path is not found
 const notFoundHandler = (stream) => {
@@ -43,6 +52,9 @@ const router = (stream, headers) => {
   }
   else if (path === "/ping" && method === 'GET') {
     handler = pingHandler
+  }
+  else if (path === "/test" && method === 'GET') {
+    handler = imageHandler
   }
   else {
     handler = notFoundHandler
