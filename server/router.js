@@ -1,7 +1,6 @@
 // reference: https://www.sohamkamani.com/nodejs/http2/#making-client-side-requests
 
-const helloWorldHandler = (stream, headers) => {
-  console.log({ headers })
+const helloWorldHandler = (stream) => {
   stream.respond({
     ':status': 200
   })
@@ -10,8 +9,7 @@ const helloWorldHandler = (stream, headers) => {
 
 // the pingHandler returns "pong" to let us know that
 // the server is up and running
-const pingHandler = (stream, headers) => {
-  console.log({ headers })
+const pingHandler = (stream) => {
   stream.respond({
     ':status': 200
   })
