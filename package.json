@@ -4,7 +4,7 @@
   "description": "tile server",
   "main": "server/server.js",
   "scripts": {
-    "start": "node server/server.js",
+    "start": "nodemon server/server.js",
     "test": "node test.js",
     "format": "prettier-eslint --eslint-path ./.eslintrc.js --config ./.prettierrc.json --write --prettier-ignore \"src/**/*.js\"",
     "prepare": "husky install"
@@ -19,8 +19,14 @@
     "eslint-plugin-import": "^2.25.4",
     "eslint-plugin-prettier": "^4.0.0",
     "husky": "^7.0.4",
+    "nodemon": "^2.0.15",
     "prettier": "^2.6.0",
     "prettier-eslint": "^13.0.0",
     "prettier-eslint-cli": "^5.0.1"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.17.3",
+    "http2-express-bridge": "^1.0.7"
   }
 }

@@ -1,23 +1,35 @@
-// reference: https://www.sohamkamani.com/nodejs/http2/#making-client-side-requests
-
+const express = require('express')
+const http2Express = require('http2-express-bridge')
 const http2 = require('http2')
+const cors = require('cors')
 const fs = require('fs')
-const router = require('./router')
+const { promisify } = require('util')
 
-// create a new server instance
-const server = http2.createSecureServer({
-  // we can read the certificate and private key from
-  // our project directory
-  key: fs.readFileSync('server/keys/key.pem'),
-  cert: fs.readFileSync('server/keys/cert.pem')
+const readFile = promisify(fs.readFile)
+
+const app = http2Express(express)
+app.use(cors())
+
+app.get('/tiles/:z-:x-:y.png', async (req, res) => {
+  const { z, x, y } = req.params
+  const imgPath = `tiles/png/${z}/${x}-${y}-${z}.png`
+
+  console.info(req.headers['user-agent'], ': ', req.headers[':method'], imgPath)
+
+  if (fs.existsSync(imgPath)) {
+    const img = await readFile(imgPath)
+    res.send(img)
+  }
+  else {
+    res.send('file not found')
+  }
 })
-// log any error that occurs when running the server
-server.on('error', (err) => console.error(err))
 
-// the 'stream' callback is called when a new
-// stream is created. Or in other words, every time a
-// new request is received
-server.on('stream', router)
+const options = {
+  key: fs.readFileSync('server/keys/key.pem'),
+  cert: fs.readFileSync('server/keys/cert.pem'),
+  allowHTTP1: true
+}
 
-// start the server
-server.listen(8443)
+const server = http2.createSecureServer(options, app)
+server.listen(3001, () => console.info(`server listening on 3001`))

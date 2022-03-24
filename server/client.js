@@ -3,13 +3,13 @@
 const http2 = require('http2');
 const fs = require('fs');
 
-const client = http2.connect('https://localhost:8443', {
+const client = http2.connect('https://localhost:3001', {
   // we don't have to do this if our certificate is signed by
   // a recognized certificate authority, like LetsEncrypt
   ca: fs.readFileSync('./keys/cert.pem')
 })
 
-const req = client.request({ ':path': '/test' })
+const req = client.request({ ':path': '/' })
 
 req.setTimeout(3000, () => {
   console.info('request timed out')
