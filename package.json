@@ -4,7 +4,7 @@
   "description": "tile server",
   "main": "server/server.js",
   "scripts": {
-    "start": "nodemon server/server.js",
+    "start": "pm2 start server/server.js --watch -i 3",
     "test": "node test.js",
     "format": "prettier-eslint --eslint-path ./.eslintrc.js --config ./.prettierrc.json --write --prettier-ignore \"src/**/*.js\"",
     "prepare": "husky install"
