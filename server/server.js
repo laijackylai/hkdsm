@@ -15,12 +15,12 @@ app.get('/tiles/:z-:x-:y.png', async (req, res) => {
   const { z, x, y } = req.params
   const imgPath = `tiles/png/${z}/${x}-${y}-${z}.png`
 
-  // console.info(req.headers['user-agent'], ': ', req.headers[':method'], imgPath)
+  console.info(req.headers['user-agent'], ': ', req.headers[':method'], imgPath)
 
   if (fs.existsSync(imgPath)) {
     const img = await readFile(imgPath)
     res.send(img)
-    console.info('sent hkdsm', img, '\n')
+    console.info('sent hkdsm\n')
   } else {
     const MAPBOX_ACCESS_TOKEN = 'pk.eyJ1IjoibGFpamFja3lsYWkiLCJhIjoiY2tjZWZucjAzMDd1eDJzcGJvN2tiZHduOSJ9.vWThniHwg9V1wEO3O6xn_g';
     const mapboxRGBUrl = `https://api.mapbox.com/v4/mapbox.terrain-rgb/${z}/${x}/${y}.pngraw?access_token=${MAPBOX_ACCESS_TOKEN}`
@@ -36,7 +36,7 @@ app.get('/tiles/:z-:x-:y.png', async (req, res) => {
         return
       }
       res.send(body)
-      console.info('sent mapbox terrain', body, '\n')
+      console.info('sent mapbox terrain\n')
     })
   }
 })
