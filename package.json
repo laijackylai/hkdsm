@@ -25,6 +25,7 @@
     "prettier-eslint-cli": "^5.0.1"
   },
   "dependencies": {
+    "compression": "^1.7.4",
     "cors": "^2.8.5",
     "express": "^4.17.3",
     "http2-express-bridge": "^1.0.7",

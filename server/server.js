@@ -3,6 +3,7 @@ const http2Express = require('http2-express-bridge')
 const http2 = require('http2')
 const cors = require('cors')
 const fs = require('fs')
+// const compression = require('compression') // ! compression does not support http2
 const request = require('request')
 const { promisify } = require('util')
 
@@ -10,6 +11,7 @@ const readFile = promisify(fs.readFile)
 
 const app = http2Express(express)
 app.use(cors())
+// app.use(compression())
 
 app.get('/tiles/:z-:x-:y.png', async (req, res) => {
   const { z, x, y } = req.params
@@ -39,6 +41,13 @@ app.get('/tiles/:z-:x-:y.png', async (req, res) => {
       console.info(`sent mapbox terrain: ${imgPath}`)
     })
   }
+})
+
+app.get('/test/data.ply', async (req, res) => {
+  // const dataPath = '/Users/laijackylai/Documents/hkdsm/test/test.json.lzma'
+  const dataPath = '/Users/laijackylai/Documents/hkradar/test/data.ply'
+  // const dataPath = '/Users/laijackylai/Documents/hkradar/test/tet.ply'
+  res.sendFile(dataPath)
 })
 
 const options = {
