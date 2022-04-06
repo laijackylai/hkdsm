@@ -3,6 +3,7 @@ const http2Express = require('http2-express-bridge')
 const http2 = require('http2')
 const cors = require('cors')
 const fs = require('fs')
+const path = require('path')
 // const compression = require('compression') // ! compression does not support http2
 const request = require('request')
 const { promisify } = require('util')
@@ -48,6 +49,45 @@ app.get('/test/data.ply', async (req, res) => {
   const dataPath = '/Users/laijackylai/Documents/hkradar/test/data.ply'
   // const dataPath = '/Users/laijackylai/Documents/hkradar/test/tet.ply'
   res.sendFile(dataPath)
+})
+
+app.get('/radarData/:date/:fileName', async (req, res) => {
+  const { date, fileName } = req.params
+  const basePath = '/Users/laijackylai/Documents/hkradar/'
+  const filePath = basePath.concat(date).concat('/', fileName)
+  res.sendFile(filePath)
+})
+
+app.get('/availableTimeslots/:date/:dataset', async (req, res) => {
+  const { date, dataset } = req.params
+  if (!dataset || !date) {
+    res.send(400)
+  }
+  let data = ''
+  if (dataset === 'radar') {
+    data = 'hkradar/'
+  }
+  const directoryPath = path.join('/Users/laijackylai/Documents/', data, date, '/')
+  const list = []
+  fs.readdirSync(directoryPath).forEach(file => {
+    if (file.toString().includes('.ply') && !file.toString().includes('ascii')) {
+      list.push(file.toString());
+    }
+  });
+  const returnList = []
+  for (let i = 0; i < list.length; i += 1) {
+    const e = list[i]
+    const s = { label: e.split('.')[0].split('_')[2].replace(date, ''), value: e }
+    returnList.push(s)
+  }
+  res.send(returnList)
+
+  // * send data format
+  // const options = [
+  //   { value: 'chocolate', label: 'Chocolate' },
+  //   { value: 'strawberry', label: 'Strawberry' },
+  //   { value: 'vanilla', label: 'Vanilla' }
+  // ];
 })
 
 const options = {
