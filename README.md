@@ -2,7 +2,7 @@
 read and transform hk dsm data
 
 ## Steps
-- Transform the raw data to GeoTiff -> height map -> render in Deck.gl
+- Transform the raw text data to VRT -> GeoTiff -> height map -> render in Deck.gl
 
 ## TODO
 - Explore [GeoTiff](https://www.ogc.org/standards/geotiff) standard
@@ -10,3 +10,5 @@ read and transform hk dsm data
 - Explore the [layer](https://deck.gl/docs/api-reference/core/layer) rendering structure used by Deck.gl
 - Explore the [SimpleMeshLayer](https://deck.gl/docs/api-reference/mesh-layers/simple-mesh-layer), [MVTLayer](https://deck.gl/docs/api-reference/geo-layers/mvt-layer) and the [TerrainLayer](https://deck.gl/docs/api-reference/geo-layers/terrain-layer)
 - Explore the possibility of writing a [custom layer](https://deck.gl/docs/developer-guide/custom-layers) for this use case
+
+## Done
