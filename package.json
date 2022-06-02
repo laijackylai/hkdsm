@@ -5,7 +5,7 @@
   "main": "server/server.js",
   "scripts": {
     "start": "pm2 start server/server.js --watch -i 3",
-    "test": "node test.js",
+    "test": "node server/server.js",
     "format": "prettier-eslint --eslint-path ./.eslintrc.js --config ./.prettierrc.json --write --prettier-ignore \"src/**/*.js\"",
     "prepare": "husky install"
   },

@@ -44,6 +44,12 @@ app.get('/tiles/:z-:x-:y.png', async (req, res) => {
   }
 })
 
+app.get('/coastline.pbf', (req, res) => {
+  // const dataPath = '/Users/laijackylai/Documents/hkdsm/coastline/coastline.pbf'
+  const dataPath = '/home/rsmcvis/hkdsm/coastline/coastline.pbf'
+  res.sendFile(dataPath)
+})
+
 app.get('/test/data.ply', async (req, res) => {
   // const dataPath = '/Users/laijackylai/Documents/hkdsm/test/test.json.lzma'
   const dataPath = '/Users/laijackylai/Documents/hkradar/test/data.ply'
@@ -53,24 +59,25 @@ app.get('/test/data.ply', async (req, res) => {
 
 app.get('/radarData/:date/:fileName', async (req, res) => {
   const { date, fileName } = req.params
-  const basePath = '/Users/laijackylai/Documents/hkradar/'
+  // const basePath = '/Users/laijackylai/Documents/hkradar/'
+  const basePath = '/home/rsmcvis/hkradar/'
   const filePath = basePath.concat(date).concat('/', fileName)
   res.sendFile(filePath)
 })
 
-app.get('/availableTimeslots/:date/:dataset', async (req, res) => {
-  const { date, dataset } = req.params
-  if (!dataset || !date) {
+app.get('/availableTimeslots/:radarType/:date/:dataset', async (req, res) => {
+  const { radarType, date, dataset } = req.params
+  if (!dataset || !date || !radarType) {
     res.send(400)
   }
   let data = ''
   if (dataset === 'radar') {
     data = 'hkradar/'
   }
-  const directoryPath = path.join('/Users/laijackylai/Documents/', data, date, '/')
+  const directoryPath = path.join('/home/rsmcvis/', data, date, '/')
   const list = []
   fs.readdirSync(directoryPath).forEach(file => {
-    if (file.toString().includes('.ply') && !file.toString().includes('ascii')) {
+    if (file.toString().includes('.ply') && !file.toString().includes('ascii') && file.toString().includes(radarType)) {
       list.push(file.toString());
     }
   });
@@ -80,6 +87,7 @@ app.get('/availableTimeslots/:date/:dataset', async (req, res) => {
     const s = { label: e.split('.')[0].split('_')[2].replace(date, ''), value: e }
     returnList.push(s)
   }
+  returnList.sort((a, b) => parseInt(a.label, 10) - parseInt(b.label, 10))
   res.send(returnList)
 
   // * send data format
@@ -97,4 +105,5 @@ const options = {
 }
 
 const server = http2.createSecureServer(options, app)
-server.listen(3001, () => console.info(`server listening on 3001`))
+server.listen(8001, () => console.info(`server listening on 8001`))
+
