@@ -1,5 +1,16 @@
-# hkdsm
-read and transform hk dsm data
+# HKDSM
+read, transform and serve hk dsm data
+
+## Usage
+An Express.js webserver has been written and and provides an endpoint for the tilesets
+It is being wrapped in PM2 in cluster mode, with 3 instances currently
+To start
+```
+yarn start
+```
+
+## Done
+Custom tiled 3D terrain are generated and are stored in the tiles/ folder
 
 ## Steps
 - Transform the raw text data to VRT -> GeoTiff -> height map -> render in Deck.gl
