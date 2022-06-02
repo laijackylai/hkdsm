@@ -2,9 +2,9 @@
 read, transform and serve hk dsm data
 
 ## Usage
-An Express.js webserver has been written and and provides an endpoint for the tilesets
-It is being wrapped in PM2 in cluster mode, with 3 instances currently
-To start
+An Express.js webserver has been written and and provides an endpoint for the tilesets.  
+It is being wrapped in PM2 in cluster mode, with 3 instances currently.  
+To start:
 ```
 yarn start
 ```
